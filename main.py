@@ -70,34 +70,37 @@ def contact():
 
 # --- Auth pages ---
 
+INPUT_CLS = 'w-full px-3 py-2 border border-gray-200 rounded-md text-sm mb-4 font-sans'
+
 def login_form(error=None, email=''):
     return Page(
         Section(
             Div(
                 Div(
-                    Div(error, cls='flash flash-error') if error else '',
-                    H2('Login', cls='font-display', style='font-size:2rem;margin-bottom:1.5rem;text-align:center;'),
+                    Div(error, cls='bg-red-50 text-red-800 border border-red-200 px-4 py-3 rounded-lg mb-4 text-sm') if error else '',
+                    H2('Login', cls='font-display text-3xl text-center mb-6'),
                     Form(
                         Div(
-                            Label('Email'),
-                            Input(type='email', name='email', placeholder='you@example.com', value=email, required=True),
+                            Label('Email', cls='block mb-1 font-semibold text-sm text-gray-900'),
+                            Input(type='email', name='email', placeholder='you@example.com', value=email, required=True, cls=INPUT_CLS),
                         ),
                         Div(
-                            Label('Password'),
-                            Input(type='password', name='password', placeholder='Your password', required=True),
+                            Label('Password', cls='block mb-1 font-semibold text-sm text-gray-900'),
+                            Input(type='password', name='password', placeholder='Your password', required=True, cls=INPUT_CLS),
                         ),
-                        Button('Sign In', type='submit', cls='btn btn-green', style='width:100%;margin-top:0.5rem;'),
+                        Button('Sign In', type='submit',
+                               cls='w-full mt-2 px-6 py-2.5 rounded-md font-semibold text-sm bg-primary text-white hover:bg-primary-light transition-colors cursor-pointer border-none'),
                         method='post', action='/login',
-                        cls='admin-form', style='max-width:400px;margin:0 auto;'
+                        cls='bg-white p-8 rounded-lg shadow-sm max-w-md mx-auto'
                     ),
                     Div(
-                        P("Don't have an account? ", A('Register', href='/register', style='color:var(--primary);'),
-                          style='text-align:center;margin-top:1.5rem;color:var(--gray);font-size:0.9rem;'),
+                        P("Don't have an account? ", A('Register', href='/register', cls='text-primary no-underline'),
+                          cls='text-center mt-6 text-gray-500 text-sm'),
                     ),
                 ),
-                cls='section-inner'
+                cls='max-w-7xl mx-auto'
             ),
-            cls='section', style='min-height:60vh;display:flex;align-items:center;'
+            cls='py-20 px-8 min-h-[60vh] flex items-center'
         ),
         active='', title='Login'
     )
@@ -134,29 +137,34 @@ def register():
     return Page(
         Section(
             Div(
-                H2('Create Account', cls='font-display', style='font-size:2rem;margin-bottom:1.5rem;text-align:center;'),
+                H2('Create Account', cls='font-display text-3xl text-center mb-6'),
                 Form(
-                    Div(Label('First Name'), Input(type='text', name='first_name', required=True)),
-                    Div(Label('Last Name'), Input(type='text', name='last_name', required=True)),
-                    Div(Label('Email'), Input(type='email', name='email', required=True)),
-                    Div(Label('Password'), Input(type='password', name='password', minlength='8', required=True)),
+                    Div(Label('First Name', cls='block mb-1 font-semibold text-sm text-gray-900'),
+                        Input(type='text', name='first_name', required=True, cls=INPUT_CLS)),
+                    Div(Label('Last Name', cls='block mb-1 font-semibold text-sm text-gray-900'),
+                        Input(type='text', name='last_name', required=True, cls=INPUT_CLS)),
+                    Div(Label('Email', cls='block mb-1 font-semibold text-sm text-gray-900'),
+                        Input(type='email', name='email', required=True, cls=INPUT_CLS)),
+                    Div(Label('Password', cls='block mb-1 font-semibold text-sm text-gray-900'),
+                        Input(type='password', name='password', minlength='8', required=True, cls=INPUT_CLS)),
                     Div(
-                        Label('I am a'),
+                        Label('I am a', cls='block mb-1 font-semibold text-sm text-gray-900'),
                         Select(
                             Option('Investor', value='investor'),
                             Option('Borrower / Developer', value='borrower'),
-                            name='role'
+                            name='role', cls=INPUT_CLS
                         ),
                     ),
-                    Button('Create Account', type='submit', cls='btn btn-green', style='width:100%;margin-top:0.5rem;'),
+                    Button('Create Account', type='submit',
+                           cls='w-full mt-2 px-6 py-2.5 rounded-md font-semibold text-sm bg-primary text-white hover:bg-primary-light transition-colors cursor-pointer border-none'),
                     method='post', action='/register',
-                    cls='admin-form', style='max-width:400px;margin:0 auto;'
+                    cls='bg-white p-8 rounded-lg shadow-sm max-w-md mx-auto'
                 ),
-                P('Already have an account? ', A('Login', href='/login', style='color:var(--primary);'),
-                  style='text-align:center;margin-top:1.5rem;color:var(--gray);font-size:0.9rem;'),
-                cls='section-inner'
+                P('Already have an account? ', A('Login', href='/login', cls='text-primary no-underline'),
+                  cls='text-center mt-6 text-gray-500 text-sm'),
+                cls='max-w-7xl mx-auto'
             ),
-            cls='section', style='min-height:60vh;display:flex;align-items:center;'
+            cls='py-20 px-8 min-h-[60vh] flex items-center'
         ),
         active='', title='Register'
     )
@@ -177,11 +185,12 @@ async def register_post(req, sess):
         if existing:
             return Page(
                 Section(Div(
-                    Div('An account with this email already exists.', cls='flash flash-error'),
-                    H2('Create Account', cls='font-display', style='font-size:2rem;margin-bottom:1.5rem;text-align:center;'),
-                    P(A('Login instead', href='/login', style='color:var(--primary);'), style='text-align:center;'),
-                    cls='section-inner'
-                ), cls='section'),
+                    Div('An account with this email already exists.',
+                        cls='bg-red-50 text-red-800 border border-red-200 px-4 py-3 rounded-lg mb-4 text-sm'),
+                    H2('Create Account', cls='font-display text-3xl text-center mb-6'),
+                    P(A('Login instead', href='/login', cls='text-primary no-underline'), cls='text-center'),
+                    cls='max-w-7xl mx-auto'
+                ), cls='py-20 px-8'),
                 active='', title='Register'
             )
 
@@ -223,24 +232,28 @@ def faq():
         faq_items = []
         for f in faqs:
             faq_items.append(Div(
-                H3(f.question, style='margin-bottom:0.75rem;'),
-                P(f.answer, style='color:var(--gray);'),
-                cls='card'
+                H3(f.question, cls='text-lg font-bold mb-3'),
+                P(f.answer, cls='text-gray-500 text-sm leading-relaxed'),
+                cls='bg-white rounded-xl p-8 shadow-sm border border-gray-100'
             ))
         if not faq_items:
-            faq_items = [P('No FAQs available yet.', style='color:var(--gray);text-align:center;')]
+            faq_items = [P('No FAQs available yet.', cls='text-gray-500 text-center')]
     finally:
         db.close()
 
     return Page(
         Div(
             Section(
-                Div(H1('Frequently Asked Questions'), P('Find answers to common questions about PropFunder.'), cls='hero-inner'),
-                cls='hero', style='padding:4rem 2rem;'
+                Div(
+                    H1('Frequently Asked Questions', cls='font-display text-4xl font-extrabold text-white mb-4'),
+                    P('Find answers to common questions about PropFunder.', cls='text-lg text-white/90'),
+                    cls='max-w-7xl mx-auto relative z-10'
+                ),
+                cls='bg-gradient-to-br from-dark via-primary-dark to-primary py-16 px-8'
             ),
             Section(
-                Div(*faq_items, cls='section-inner', style='max-width:800px;'),
-                cls='section'
+                Div(*faq_items, cls='max-w-3xl mx-auto space-y-6'),
+                cls='py-20 px-8'
             ),
         ),
         active='', title='FAQ'

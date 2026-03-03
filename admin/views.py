@@ -29,10 +29,12 @@ ADMIN_MODELS = {
 
 
 def admin_sidebar(active=''):
-    links = [A(f'\u2302 Dashboard', href='/admin', cls='active' if active == 'dashboard' else '')]
+    links = [A('\u2302 Dashboard', href='/admin',
+               cls=f'block px-6 py-3 text-sm no-underline transition-colors {"bg-white/10 text-accent" if active == "dashboard" else "text-gray-400 hover:bg-white/10 hover:text-accent"}')]
     for key, cfg in ADMIN_MODELS.items():
-        links.append(A(cfg['label'], href=f'/admin/{key}', cls='active' if active == key else ''))
-    return Div(*links, cls='admin-sidebar')
+        links.append(A(cfg['label'], href=f'/admin/{key}',
+                       cls=f'block px-6 py-3 text-sm no-underline transition-colors {"bg-white/10 text-accent" if active == key else "text-gray-400 hover:bg-white/10 hover:text-accent"}'))
+    return Div(*links, cls='w-[250px] bg-dark text-white min-h-[calc(100vh-70px)] pt-6 fixed top-[70px] left-0')
 
 
 def admin_layout(content, active='dashboard'):
@@ -40,32 +42,43 @@ def admin_layout(content, active='dashboard'):
         Title('PropFunder Admin'),
         Nav(
             Div(
-                A('Prop', Span('Funder', style='color:#C8A96E;'), ' Admin', href='/admin',
-                  style='font-family:Playfair Display,serif;font-size:1.3rem;font-weight:700;color:white;text-decoration:none;'),
+                A('Prop', Span('Funder', cls='text-accent'), ' Admin', href='/admin',
+                  cls='font-display text-xl font-bold text-white no-underline'),
                 Div(
-                    A('View Site', href='/', style='color:#ccc;text-decoration:none;font-size:0.9rem;margin-right:1.5rem;'),
-                    A('Logout', href='/logout', style='color:#C8A96E;text-decoration:none;font-size:0.9rem;'),
+                    A('View Site', href='/', cls='text-gray-400 no-underline text-sm mr-6'),
+                    A('Logout', href='/logout', cls='text-accent no-underline text-sm'),
                 ),
-                cls='nav-inner'
+                cls='max-w-7xl mx-auto flex items-center justify-between h-[70px]'
             ),
-            cls='nav-main'
+            cls='bg-dark px-8 sticky top-0 z-50 shadow-md'
         ),
         admin_sidebar(active),
-        Div(content, cls='admin-content')
+        Div(content, cls='ml-[250px] p-8 min-h-[calc(100vh-70px)]')
     )
+
+
+BADGE_CLASSES = {
+    'green': 'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800',
+    'yellow': 'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800',
+    'red': 'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-800',
+    'blue': 'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800',
+    'gray': 'inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-800',
+}
 
 
 def status_badge(value):
     v = str(value).lower() if value else ''
     if v in ('active', 'open', 'confirmed', 'completed', 'true', 'yes'):
-        return Span(str(value), cls='badge badge-green')
+        color = 'green'
     elif v in ('pending', 'listed', 'draft'):
-        return Span(str(value), cls='badge badge-yellow')
+        color = 'yellow'
     elif v in ('defaulted', 'failed', 'cancelled', 'false', 'no'):
-        return Span(str(value), cls='badge badge-red')
+        color = 'red'
     elif v in ('funded', 'repaying'):
-        return Span(str(value), cls='badge badge-blue')
-    return Span(str(value), cls='badge badge-gray')
+        color = 'blue'
+    else:
+        color = 'gray'
+    return Span(str(value), cls=BADGE_CLASSES[color])
 
 
 @ar('/admin')
@@ -77,17 +90,16 @@ def admin_dashboard():
             count = db.query(cfg['model']).count()
             stats.append(
                 Div(
-                    H3(str(count)),
-                    P(cfg['label']),
+                    H3(str(count), cls='text-3xl font-extrabold text-primary'),
+                    P(cfg['label'], cls='text-sm text-gray-500 mt-1'),
                     A('View \u2192', href=f'/admin/{key}',
-                      style='display:block;margin-top:0.5rem;color:var(--primary);text-decoration:none;font-size:0.85rem;font-weight:600;'),
-                    cls='stat-item',
-                    style='background:white;padding:1.5rem;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.06);'
+                      cls='block mt-2 text-primary no-underline text-sm font-semibold'),
+                    cls='bg-white p-6 rounded-lg shadow-sm'
                 )
             )
         content = Div(
-            H1('Dashboard', style='font-size:1.8rem;margin-bottom:2rem;'),
-            Div(*stats, style='display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.5rem;'),
+            H1('Dashboard', cls='text-3xl font-bold mb-8'),
+            Div(*stats, cls='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6'),
         )
     finally:
         db.close()
@@ -104,39 +116,45 @@ def admin_list(model_key: str):
     db = SessionLocal()
     try:
         items = db.query(model).order_by(model.id.desc()).limit(100).all()
-        headers = [Th(f.replace('_', ' ').title()) for f in cfg['list_fields']]
-        headers.append(Th('Actions'))
+        headers = [Th(f.replace('_', ' ').title(),
+                      cls='bg-gray-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 border-b-2 border-gray-200')
+                   for f in cfg['list_fields']]
+        headers.append(Th('Actions',
+                          cls='bg-gray-50 px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 border-b-2 border-gray-200'))
 
         rows = []
         for item in items:
             cells = []
             for f in cfg['list_fields']:
                 val = getattr(item, f, '')
+                td_cls = 'px-4 py-3 border-b border-gray-100 text-sm'
                 if isinstance(val, bool) or (hasattr(val, 'value') and str(val.value) in ('true', 'false')):
-                    cells.append(Td(status_badge(val)))
+                    cells.append(Td(status_badge(val), cls=td_cls))
                 elif f in ('status', 'funding_status', 'payment_status', 'role', 'property_type', 'risk_level', 'update_type'):
-                    cells.append(Td(status_badge(val.value if hasattr(val, 'value') else val)))
+                    cells.append(Td(status_badge(val.value if hasattr(val, 'value') else val), cls=td_cls))
                 else:
                     display = str(val)[:50] if val is not None else '-'
-                    cells.append(Td(display))
+                    cells.append(Td(display, cls=td_cls))
             cells.append(Td(
                 A('Edit', href=f'/admin/{model_key}/{item.id}/edit',
-                  style='color:var(--primary);text-decoration:none;font-weight:600;margin-right:1rem;'),
+                  cls='text-primary no-underline font-semibold mr-4'),
                 A('Delete', href=f'/admin/{model_key}/{item.id}/delete',
-                  style='color:#dc3545;text-decoration:none;font-weight:600;',
-                  onclick="return confirm('Are you sure?')")
+                  cls='text-red-600 no-underline font-semibold',
+                  onclick="return confirm('Are you sure?')"),
+                cls='px-4 py-3 border-b border-gray-100 text-sm'
             ))
-            rows.append(Tr(*cells))
+            rows.append(Tr(*cells, cls='hover:bg-blue-50/50'))
 
         content = Div(
             Div(
-                H1(cfg['label'], style='font-size:1.8rem;'),
-                A(f'+ Add {cfg["label"]}', href=f'/admin/{model_key}/add', cls='btn btn-green',
-                  style='padding:0.5rem 1.2rem;font-size:0.85rem;'),
-                style='display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;'
+                H1(cfg['label'], cls='text-3xl font-bold'),
+                A(f'+ Add {cfg["label"]}', href=f'/admin/{model_key}/add',
+                  cls='inline-block px-5 py-2 rounded-md font-semibold text-sm no-underline bg-primary text-white hover:bg-primary-light transition-colors'),
+                cls='flex justify-between items-center mb-6'
             ),
-            P(f'{len(items)} records', style='color:var(--gray);margin-bottom:1rem;font-size:0.9rem;'),
-            Table(Thead(Tr(*headers)), Tbody(*rows), cls='admin-table') if rows else P('No records found.'),
+            P(f'{len(items)} records', cls='text-gray-500 mb-4 text-sm'),
+            Table(Thead(Tr(*headers)), Tbody(*rows),
+                  cls='w-full border-collapse bg-white rounded-lg overflow-hidden shadow-sm') if rows else P('No records found.'),
         )
     finally:
         db.close()
@@ -179,29 +197,34 @@ def get_model_fields(model):
 def render_form_field(field, value=None):
     name = field['name']
     label_text = name.replace('_', ' ').title()
+    input_cls = 'w-full px-3 py-2 border border-gray-200 rounded-md text-sm mb-4 font-sans'
 
     if field['type'] == 'checkbox':
         checked = bool(value) if value is not None else False
         return Div(
             Label(
                 Input(type='checkbox', name=name, checked=checked, value='true',
-                      style='width:auto;margin-right:0.5rem;'),
-                label_text
+                      cls='w-auto mr-2'),
+                label_text,
+                cls='flex items-center text-sm font-semibold text-gray-900'
             ),
-            style='margin-bottom:1rem;'
+            cls='mb-4'
         )
     elif field['type'] == 'select' and hasattr(field['col'].type, 'enums'):
         enums = field['col'].type.enums
         options = [Option(e, value=e, selected=(str(value) == e if value else False)) for e in enums]
         options.insert(0, Option('-- Select --', value=''))
-        return Div(Label(label_text), Select(*options, name=name))
+        return Div(Label(label_text, cls='block mb-1 font-semibold text-sm text-gray-900'),
+                   Select(*options, name=name, cls=input_cls))
     elif field['type'] == 'textarea':
-        return Div(Label(label_text), Textarea(str(value or ''), name=name))
+        return Div(Label(label_text, cls='block mb-1 font-semibold text-sm text-gray-900'),
+                   Textarea(str(value or ''), name=name, cls=f'{input_cls} min-h-[100px] resize-y'))
     else:
         return Div(
-            Label(label_text),
+            Label(label_text, cls='block mb-1 font-semibold text-sm text-gray-900'),
             Input(type=field['type'], name=name, value=str(value or ''),
-                  step='0.01' if field['type'] == 'number' else None)
+                  step='0.01' if field['type'] == 'number' else None,
+                  cls=input_cls)
         )
 
 
@@ -215,16 +238,17 @@ def admin_add_form(model_key: str):
     form_fields = [render_form_field(f) for f in fields]
 
     content = Div(
-        H1(f'Add {cfg["label"]}', style='font-size:1.8rem;margin-bottom:1.5rem;'),
+        H1(f'Add {cfg["label"]}', cls='text-3xl font-bold mb-6'),
         Form(
             *form_fields,
             Div(
-                Button('Save', type='submit', cls='btn btn-green', style='margin-right:1rem;'),
-                A('Cancel', href=f'/admin/{model_key}', cls='btn',
-                  style='background:var(--gray-light);color:var(--dark);'),
+                Button('Save', type='submit',
+                       cls='inline-block px-6 py-2.5 rounded-md font-semibold text-sm bg-primary text-white hover:bg-primary-light transition-colors cursor-pointer border-none mr-4'),
+                A('Cancel', href=f'/admin/{model_key}',
+                  cls='inline-block px-6 py-2.5 rounded-md font-semibold text-sm no-underline bg-gray-200 text-gray-900'),
             ),
             method='post', action=f'/admin/{model_key}/add',
-            cls='admin-form'
+            cls='bg-white p-8 rounded-lg shadow-sm max-w-3xl'
         )
     )
     return admin_layout(content, model_key)
@@ -285,16 +309,17 @@ def admin_edit_form(model_key: str, item_id: int):
         db.close()
 
     content = Div(
-        H1(f'Edit {cfg["label"]} #{item_id}', style='font-size:1.8rem;margin-bottom:1.5rem;'),
+        H1(f'Edit {cfg["label"]} #{item_id}', cls='text-3xl font-bold mb-6'),
         Form(
             *form_fields,
             Div(
-                Button('Save Changes', type='submit', cls='btn btn-green', style='margin-right:1rem;'),
-                A('Cancel', href=f'/admin/{model_key}', cls='btn',
-                  style='background:var(--gray-light);color:var(--dark);'),
+                Button('Save Changes', type='submit',
+                       cls='inline-block px-6 py-2.5 rounded-md font-semibold text-sm bg-primary text-white hover:bg-primary-light transition-colors cursor-pointer border-none mr-4'),
+                A('Cancel', href=f'/admin/{model_key}',
+                  cls='inline-block px-6 py-2.5 rounded-md font-semibold text-sm no-underline bg-gray-200 text-gray-900'),
             ),
             method='post', action=f'/admin/{model_key}/{item_id}/edit',
-            cls='admin-form'
+            cls='bg-white p-8 rounded-lg shadow-sm max-w-3xl'
         )
     )
     return admin_layout(content, model_key)
