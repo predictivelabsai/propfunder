@@ -205,3 +205,22 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Screenshots
+*.png
+
+# Playwright
+.playwright-mcp/
+
+# Render
+render.yaml
+
+# Legacy Django files (from LitFunder)
+accounts/
+cases/
+litfunder/
+manage.py
+test_api_endpoints.py
+test-results/
+init-db.sh
+utils/
